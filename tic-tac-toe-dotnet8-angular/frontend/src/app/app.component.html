@@ -1,0 +1,95 @@
+<main class="page-shell">
+  <header class="hero">
+    <div class="eyebrow">CLASSIC GAME · FULL-STACK DEMO</div>
+    <h1>Tic <span>Tac</span> Toe</h1>
+    <p>A little strategy. A little competition. One clean move at a time.</p>
+  </header>
+
+  <section class="mode-switch" aria-label="Game mode">
+    <button type="button" [class.active]="selectedMode === 'TwoPlayer'"
+      [disabled]="busy" (click)="changeMode('TwoPlayer')">Two Players</button>
+    <button type="button" [class.active]="selectedMode === 'Computer'"
+      [disabled]="busy" (click)="changeMode('Computer')">Play Computer</button>
+  </section>
+
+  <section class="layout" *ngIf="game as g">
+    <article class="game-card">
+      <div class="game-topline">
+        <span class="mode-label">{{ g.mode === 'Computer' ? 'YOU vs COMPUTER' : 'LOCAL MULTIPLAYER' }}</span>
+        <span class="round-id">SESSION {{ g.id.slice(0, 8).toUpperCase() }}</span>
+      </div>
+
+      <div class="status-line" [class.won]="g.status === 'Won'" [class.draw]="g.status === 'Draw'">
+        <span class="status-dot"></span>
+        <span>{{ statusText }}</span>
+      </div>
+
+      <div class="board" role="grid" aria-label="Tic Tac Toe board">
+        <button *ngFor="let cell of g.board; let i = index"
+          type="button" role="gridcell"
+          class="cell"
+          [class.mark-x]="cell === 'X'"
+          [class.mark-o]="cell === 'O'"
+          [class.winning]="isWinningCell(i)"
+          [disabled]="busy || cell !== null || g.status !== 'InProgress' || (g.mode === 'Computer' && g.currentPlayer !== 'X')"
+          [attr.aria-label]="cellLabel(i, cell)"
+          (click)="play(i)">
+          <span>{{ cell }}</span>
+        </button>
+      </div>
+
+      <div class="player-strip">
+        <div class="player-token" [class.current]="g.currentPlayer === 'X' && g.status === 'InProgress'">
+          <span class="token x-token">X</span>
+          <div><strong>{{ g.mode === 'Computer' ? 'You' : 'Player X' }}</strong><small>Crosses</small></div>
+        </div>
+        <div class="versus">VS</div>
+        <div class="player-token" [class.current]="g.currentPlayer === 'O' && g.status === 'InProgress'">
+          <span class="token o-token">O</span>
+          <div><strong>{{ g.mode === 'Computer' ? 'Computer' : 'Player O' }}</strong><small>Noughts</small></div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="primary-btn" [disabled]="busy" (click)="resetGame()">↻ New game</button>
+        <button type="button" class="secondary-btn"
+          [disabled]="busy || g.status !== 'InProgress' || g.moveHistory.length === 0"
+          (click)="undo()">↶ Undo move</button>
+      </div>
+      <p class="helper">Undo removes the last move, or the human/computer move pair in computer mode.</p>
+    </article>
+
+    <aside class="side-column">
+      <section class="panel scoreboard">
+        <div class="panel-heading"><div><span class="eyebrow">SESSION TOTALS</span><h2>Scoreboard</h2></div><span class="trophy">✦</span></div>
+        <div class="score-grid">
+          <div class="score-item"><span class="score-letter x-token">X</span><strong>{{ scoreboard.xWins }}</strong><small>X wins</small></div>
+          <div class="score-item"><span class="score-letter o-token">O</span><strong>{{ scoreboard.oWins }}</strong><small>O wins</small></div>
+          <div class="score-item"><span class="score-letter draw-token">=</span><strong>{{ scoreboard.draws }}</strong><small>Draws</small></div>
+        </div>
+        <button type="button" class="text-btn" [disabled]="busy" (click)="resetScoreboard()">Reset scoreboard</button>
+      </section>
+
+      <section class="panel history-panel">
+        <div class="panel-heading"><div><span class="eyebrow">THIS ROUND</span><h2>Move history</h2></div><span class="move-count">{{ g.moveHistory.length }} / 9</span></div>
+        <div class="history-empty" *ngIf="g.moveHistory.length === 0">
+          <span class="empty-icon">↗</span>
+          <p>Your first move starts the story.</p>
+        </div>
+        <div class="history-list" *ngIf="g.moveHistory.length > 0">
+          <div class="history-row" *ngFor="let move of g.moveHistory">
+            <span class="move-number">{{ move.moveNumber.toString().padStart(2, '0') }}</span>
+            <span class="history-player" [class.x-token]="move.player === 'X'" [class.o-token]="move.player === 'O'">{{ move.player }}</span>
+            <span class="history-position">{{ position(move) }}</span>
+          </div>
+        </div>
+      </section>
+      <div class="note"><span>i</span><p>Game rules and scores are managed by the .NET API. This demo keeps data in memory while the server is running.</p></div>
+    </aside>
+  </section>
+
+  <div class="message error-message" role="alert" *ngIf="errorMessage">{{ errorMessage }}</div>
+  <div class="message info-message" role="status" *ngIf="infoMessage">{{ infoMessage }}</div>
+
+  <footer><span>BUILT WITH ANGULAR + .NET 8</span><span>THINK AHEAD. PLAY FAIR.</span></footer>
+</main>
